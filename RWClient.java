@@ -1,5 +1,3 @@
-
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
@@ -112,7 +110,7 @@ public class RWClient extends JFrame implements ActionListener{
 	
 	public void connectToServer(String address, int port) {
 		/*connect to the server*/
-		events.setText("Connecting with ther server...");
+		events.setText("Connecting with the server...");
 		try {
 			socket = new Socket(address, port);
 			dIn = new DataInputStream(socket.getInputStream());
@@ -125,10 +123,10 @@ public class RWClient extends JFrame implements ActionListener{
 	}
 	
 	public void connectWithOpp() {
-		/*receive initial data from server*/
-		updateValues();
-		
 		events.setText("Waiting for opponent...");
+		
+		/*receive initial data from server*/
+		updateSelf();
 		
 		/*blocks until opponent has connected*/
 		updateEnemy();
@@ -140,7 +138,7 @@ public class RWClient extends JFrame implements ActionListener{
 		System.out.println("Waiting for the player to hit a button.");
 	}
 	
-	private void updateValues() {
+	private void updateSelf() {
 		
 		try {
 			healthVal.setText(dIn.readUTF());
@@ -177,7 +175,8 @@ public class RWClient extends JFrame implements ActionListener{
 			Thread t = new Thread(new Runnable() {
 				public void run() {
 					try {
-						if(dIn.readByte() == 0) {
+						int val = dIn.readByte();
+						if(val == 0) {
 							events.setText("Waiting for opponent to make a move...");
 							attackButton.setEnabled(false);
 							blockButton.setEnabled(false);
@@ -193,8 +192,16 @@ public class RWClient extends JFrame implements ActionListener{
 								switchButton.setEnabled(true);
 							}
 						}
-						else {
+						else if(val == 1) {
 							processMoves();
+						}
+						else {
+							events.setText("Opponent disconnected... Waiting for opponent...");
+							attackButton.setEnabled(false);
+							blockButton.setEnabled(false);
+							dodgeButton.setEnabled(false);
+							switchButton.setEnabled(false);
+							connectWithOpp();
 						}
 					}
 					catch(IOException ioe) {
@@ -266,7 +273,7 @@ public class RWClient extends JFrame implements ActionListener{
 				
 			}
 			
-			updateValues();
+			updateSelf();
 			updateEnemy();
 			
 			/*if game is over*/
@@ -312,7 +319,7 @@ public class RWClient extends JFrame implements ActionListener{
 				else {
 					/*quit*/
 					dOut.writeByte(1);
-					dIn.readByte();
+					//dIn.readByte();
 					this.dispose();
 				}
 			}
@@ -335,35 +342,3 @@ public class RWClient extends JFrame implements ActionListener{
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
